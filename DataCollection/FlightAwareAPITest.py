@@ -1,3 +1,6 @@
+#Sample FlightAware code created by Sam Guleff
+
+
 import sys
 from suds import null, WebFault
 from suds.client import Client
