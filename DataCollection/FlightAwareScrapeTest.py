@@ -8,8 +8,6 @@ soup = BeautifulSoup(r)
 
 table = soup.find("table", {"id":"tracklogTable"})
 
-table_body = table.find('tbody')
-
 data = []
 
 rows = table.find_all('tr')
