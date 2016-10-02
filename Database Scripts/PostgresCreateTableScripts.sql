@@ -16,8 +16,6 @@ ALTER TABLE public.AllAirports
   OWNER TO postgres;
 
 
-
-
 CREATE TABLE public.AllFlights (
     id SERIAL primary key,
     FlightNumber varchar(20) NOT NULL,

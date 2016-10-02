@@ -1,14 +1,13 @@
 import psycopg2 as pg
 import datetime
 
-ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='Asdewq123$'"
+ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='******'"
 
 
 
 #UNSCRAPED/SCRAPED/SCRAPING/ERROR
-
 def insertAirports(Airports = []):
-    '''imports into airports table many records'''
+    '''Truncates then imports into airports table all records'''
     try:
         conn = pg.connect(ConnectionString)
     except:
@@ -16,8 +15,40 @@ def insertAirports(Airports = []):
 
     cur = conn.cursor()
 
+    cur.execute(""" truncate public.allairports;""")
     cur.executemany("""INSERT INTO public.allairports (AirportCode, AirportName, Status, date_added) VALUES (%s,%s,%s,%s)""" ,Airports)
     conn.commit()
+
+
+def getNextAirport():
+    '''Locks an airport code to Scraping and returns airport code'''
+    conn = pg.connect(ConnectionString)
+    cur = conn.cursor()
+    cur.callproc("public.fngetnextairport")
+    rows = cur.fetchall()
+    cur.close()
+    conn.commit()
+    conn.close()
+    if len(rows) > 0:
+        airportCode = rows[0][0]
+        return airportCode
+    else:
+        return None
+
+
+
+def setAirportScraped(airportCode = '', status = 'SCRAPED'):
+    '''set airport as UNSCRAPED/SCRAPED/SCRAPING/ERROR'''
+    try:
+        conn = pg.connect(ConnectionString)
+    except:
+        return
+
+    cur = conn.cursor()
+
+    cur.executemany("""Update public.allairports set Status = %s where  AirportCode = %s  """, (status,airportCode) )
+    conn.commit()
+
 
 
 

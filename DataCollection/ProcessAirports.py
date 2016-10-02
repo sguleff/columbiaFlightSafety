@@ -3,9 +3,9 @@ import FlightAwarePostgreCon as FADBCon
 import os 
 import datetime
 
-#we should never run this module
-def main():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+#load all the airports
+def loadAirports():
     file = open('rawAirports.txt', 'r')
 
     lines = file.readlines()
@@ -17,9 +17,22 @@ def main():
             airportName  = str.replace(split[0],')',' ').strip()
             print 'K' + code
             airportLoad.append(('K' + code, airportName, 'UNSCRAPED', datetime.datetime.now()))
-            
-
     FADBCon.insertAirports(airportLoad)
+
+
+#we should never run this module
+def main():
+    #load clean airports dataset
+    #loadAirports()
+
+    airportCode = FADBCon.getNextAirport()
+
+    pass
+
+
+
+
+
 
 if __name__ == "__main__":
     main()

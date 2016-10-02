@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Database Scripts\PostgresCreateTableScripts.sql" />
+    <Content Include="Database Scripts\PostgresStoredProcs.sql" />
     <Content Include="DataCollection\rawAirports.txt" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
