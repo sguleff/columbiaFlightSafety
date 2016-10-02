@@ -1,4 +1,6 @@
 ﻿--Create global list of all flights
+DROP TABLE IF EXISTS FlightLogs;
+DROP TABLE IF EXISTS public.ScrapedFlights;
 DROP TABLE IF EXISTS public.AllFlights;
 CREATE TABLE public.AllFlights (
     id SERIAL primary key,
@@ -10,7 +12,6 @@ ALTER TABLE public.AllFlights
   OWNER TO postgres;
 
 --Create flights that need to be scraped
-DROP TABLE IF EXISTS public.ScrapedFlights;
 CREATE TABLE public.ScrapedFlights (
     id SERIAL primary key,
     AllFlightsId bigint references public.AllFlights(id), 
@@ -37,17 +38,19 @@ ALTER TABLE public.ScrapedFlights
 
 
 --Store Flight Log
-DROP TABLE IF EXISTS FlightLogs;
 CREATE TABLE FlightLogs (
     id SERIAL primary key,
     ScrapedFlights bigint references ScrapedFlights(id),
-    FlightNumber varchar(20) NOT NULL,
-    AircraftType varchar(20) NOT NULL,
-    Origin varchar(100) NOT NULL,
-    Destination varchar(100) NOT NULL,
-    Departure timestamp NOT NULL,
-    Arrival timestamp NOT NULL,
-    Duration varchar(20) NOT NULL,
+    UniversalTime timestamp NOT NULL,
+	Latitude real NOT NULL,
+	Longitude real NOT NULL,
+	Course integer NOT NULL,
+	Direction varchar(15) NOT NULL,
+	KTS integer NOT NULL,
+	MPH integer NOT NULL,
+	Elevation integer NOT NULL,
+	AscRate integer NULL,
+	ReportingFacility varchar(100) NOT NULL,
     ScrapedBy timestamp default NULL,
     date_added timestamp default NULL
 );

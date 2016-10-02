@@ -1,12 +1,40 @@
 import psycopg2 as pg
+import datetime
+
+ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='*****'"
+
+
+
+def insertFlights(Flights = []):
+    try:
+        conn = pg.connect(ConnectionString)
+    except:
+        return
+
+    cur = conn.cursor()
+
+
+    cur.executemany("""INSERT INTO public.AllFlights (flightnumber, date_added) VALUES (%s,%s)""" ,Flights)
+    conn.commit()
+
 
 
 #we should never run this module
 def main():
+
+    insertFlights([('UA88','1/1/1901'),('UA89','1/1/1901')])
+
+
+
+    return
+
+
+
+
     try:
-        conn = pg.connect("dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='*******'")
+        conn = pg.connect(ConnectionString)
     except:
-        print "I am unable to connect to the database"
+        return
 
     cur = conn.cursor()
 
@@ -23,3 +51,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
