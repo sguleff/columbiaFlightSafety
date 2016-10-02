@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{5a543e65-b8a5-4abb-8761-2a19d3d25cec}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>DataCollection\FlightAwareScrapeAll.py</StartupFile>
+    <StartupFile>DataCollection\FlightAwarePostgreCon.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -31,7 +31,11 @@
     <Compile Include="DataCollection\FlightAwareScrapeTest.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Database Scripts\" />
     <Folder Include="DataCollection" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Database Scripts\PostgresCreateTableScripts.sql" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />

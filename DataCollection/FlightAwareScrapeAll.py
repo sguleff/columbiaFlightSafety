@@ -6,11 +6,11 @@ ScrapableFlights = []
 
 
 def main():
-    moreFlights = FAScraper.getAvailableFlightHistory('UAL88') #
+    '''moreFlights = FAScraper.getAvailableFlightHistory('UAL88') #
     for availableFlight in moreFlights:
         flightLog = FAScraper.getFlightTrackLog2(availableFlight)
         print 'did it'
-    return 
+    return '''
 
 
     #get all arriving flights to airport
