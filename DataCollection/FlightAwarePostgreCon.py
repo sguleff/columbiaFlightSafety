@@ -1,7 +1,23 @@
 import psycopg2 as pg
 import datetime
 
-ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='*****'"
+ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='Asdewq123$'"
+
+
+
+#UNSCRAPED/SCRAPED/SCRAPING/ERROR
+
+def insertAirports(Airports = []):
+    '''imports into airports table many records'''
+    try:
+        conn = pg.connect(ConnectionString)
+    except:
+        return
+
+    cur = conn.cursor()
+
+    cur.executemany("""INSERT INTO public.allairports (AirportCode, AirportName, Status, date_added) VALUES (%s,%s,%s,%s)""" ,Airports)
+    conn.commit()
 
 
 
@@ -16,8 +32,6 @@ def insertFlights(Flights = []):
 
     cur.executemany("""INSERT INTO public.AllFlights (flightnumber, date_added) VALUES (%s,%s)""" ,Flights)
     conn.commit()
-
-
 
 #we should never run this module
 def main():

@@ -2,6 +2,22 @@
 DROP TABLE IF EXISTS FlightLogs;
 DROP TABLE IF EXISTS public.ScrapedFlights;
 DROP TABLE IF EXISTS public.AllFlights;
+DROP TABLE IF EXISTS public.AllAirports;
+
+CREATE TABLE public.AllAirports (
+    id SERIAL primary key,
+    AirportCode varchar(20) NOT NULL,
+	AirportName varchar(100) NOT NULL,
+	Status varchar(20) NOT NULL,
+    date_added timestamp default NULL
+);
+
+ALTER TABLE public.AllAirports
+  OWNER TO postgres;
+
+
+
+
 CREATE TABLE public.AllFlights (
     id SERIAL primary key,
     FlightNumber varchar(20) NOT NULL,
@@ -27,7 +43,8 @@ CREATE TABLE public.ScrapedFlights (
     DistancePlanned integer NOT NULL,
     DistanceFlown integer NOT NULL,
     DirectDistance integer NOT NULL,
-    Route varchar(500) NULL,
+    Route varchar(500) NOT NULL,
+	Simulated boolean NOT NULL,
     Status varchar(20) NOT NULL,
     ScrapedBy varchar(20) NOT NULL,
     date_scraped date default NULL
@@ -51,6 +68,7 @@ CREATE TABLE FlightLogs (
 	Elevation integer NOT NULL,
 	AscRate integer NULL,
 	ReportingFacility varchar(100) NOT NULL,
+	Simulated boolean NOT NULL,
     ScrapedBy timestamp default NULL,
     date_added timestamp default NULL
 );
