@@ -11,6 +11,5 @@ BEGIN
 		UPDATE public.allairports set Status = 'SCRAPING' where  AirportCode = code;
 	end if;
 	RETURN code;
-
 END;
 $airportCode$ LANGUAGE plpgsql;

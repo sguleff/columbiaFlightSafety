@@ -97,7 +97,7 @@ def getAllDepartingFlights(AirportCode = '', number = 1000):
     getMoreFlights = True
     i = 0
     
-    data = {}
+    data = []
 
     while getMoreFlights:
         url = 'http://flightaware.com/live/airport/'+AirportCode +'/departures?;offset='+ str(i)+';order=actualarrivaltime;sort=DESC'
@@ -111,7 +111,7 @@ def getAllDepartingFlights(AirportCode = '', number = 1000):
             if len(row.find_all('td')) == 6:
                 cols = row.find_all('td')
                 if not data.has_key(cols[0]):
-                    data[cols[0].text.encode("utf8").strip()] = False
+                    data.append(cols[0].text.encode("utf8").strip())
         i += 20
         if number / i < 1:
             break
@@ -124,7 +124,7 @@ def getAllArrivingFlights(AirportCode = '', number = 1000):
     getMoreFlights = True
     i = 0
     
-    data = {}
+    data = []
 
     while getMoreFlights:
         url = 'http://flightaware.com/live/airport/'+AirportCode +'/arrivals?;offset='+ str(i)+';order=actualarrivaltime;sort=DESC'
@@ -138,7 +138,7 @@ def getAllArrivingFlights(AirportCode = '', number = 1000):
             if len(row.find_all('td')) == 5:
                 cols = row.find_all('td')
                 if not data.has_key(cols[0]):
-                    data[cols[0].text.encode("utf8").strip()] = False
+                    data.append(cols[0].text.encode("utf8").strip())
         i += 20
         if number / i < 1:
             break
