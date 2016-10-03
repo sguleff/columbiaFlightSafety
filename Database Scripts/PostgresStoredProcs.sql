@@ -1,4 +1,5 @@
--- Procedure to insert a new city
+-- Procedure to get next available airport and mark as Scraping
+-- Returns Null when no airport is available
 CREATE OR REPLACE FUNCTION fnGetNextAirport() 
 RETURNS VARCHAR(20) as $airportCode$ 
 declare

@@ -8,7 +8,7 @@ CREATE TABLE public.AllAirports (
     id SERIAL primary key,
     AirportCode varchar(20) NOT NULL,
 	AirportName varchar(100) NOT NULL,
-	Status varchar(20) NOT NULL,
+	Status varchar(20) default 'UNSCRAPED' NOT NULL,
     date_added timestamp default NULL
 );
 
@@ -21,6 +21,7 @@ CREATE TABLE public.AllFlights(
 	AirportCode varchar(20) NOT NULL,
 	ArrDepType varchar(10) NOT NULL,
     FlightNumber varchar(20) NOT NULL,
+	Status varchar(20) default 'UNSCRAPED' NOT NULL,
     date_added timestamp default NULL
 );
 
@@ -44,8 +45,8 @@ CREATE TABLE public.ScrapedFlights (
     DistanceFlown integer NOT NULL,
     DirectDistance integer NOT NULL,
     Route varchar(500) NOT NULL,
-	Simulated boolean NOT NULL,
-    Status varchar(20) NOT NULL,
+	Simulated boolean default 'False' NOT NULL,
+    Status varchar(20) default 'UNSCRAPED' NOT NULL,
     ScrapedBy varchar(20) NOT NULL,
     date_scraped date default NULL
 );
