@@ -2,7 +2,7 @@ import FlightAwarePostgreCon as PGDBCon
 import FlightAwareScrapeTest as PGScraper
    
 ###### THIS WILL REMOVE ALL EXISTING DATA
-WIPE_EXISTING = False
+WIPE_EXISTING = True
 
 
 #we should never run this module
@@ -12,6 +12,8 @@ def main():
     try:
         if WIPE_EXISTING:
             PGDBCon.removeAllscrapable()
+            PGDBCon.setAllFlightsUnscraped()
+            return
     except:
         print "ERROR WIPING DATA"
     
