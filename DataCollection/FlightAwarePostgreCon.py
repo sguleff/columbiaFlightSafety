@@ -1,13 +1,32 @@
 import psycopg2 as pg
 import datetime
 
-ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='*******'"
-
-
-
+ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='********'"
 
 #UNSCRAPED/SCRAPED/SCRAPING/ERROR
 
+#supporting methods
+
+def dicttoInsert(data = {}):
+    retString = '('
+    listvalues = []
+    listkeys = []
+    for k, v in data.iteritems():
+        listvalues.append(v)
+        listkeys.append(k)
+
+    for i in listkeys:
+        retString += str(i) + ', '
+
+    retString = retString[:-2] + ') VALUES ('
+
+    for i in listvalues:
+        if type(i) is int or type(i) is float or type(i) is long or type(i) is complex :
+            retString += ' ' + str(i) + ', '
+        else:
+            retString += '\'' + str(i) + '\', '
+    retString = retString[:-2] + ')'
+    return retString
 
 #Airport Related Methods
 def insertAirports(Airports = []):
@@ -24,7 +43,6 @@ def insertAirports(Airports = []):
     # Close communication with the database
     cur.close()
     conn.close()
-
 
 def getNextAirport():
     try:
@@ -54,6 +72,8 @@ def setAirportScraped(airportCode = '', status = 'SCRAPED'):
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
         cur.execute("""Update public.allairports set Status = %s where  AirportCode = %s  """, (status,airportCode) )
+        if status == 'ERROR':
+            cur.execute("""Delete from public.AllFlights where AirportCode = %s  """, (airportCode) )
         conn.commit()
     except:
         conn.rollback()
@@ -77,7 +97,6 @@ def removeAllFlights():
     cur.close()
     conn.close()
 
-    
 def insertFlightList(airportCode = '', ArrDepType = '', flightsfound = []):
     try:
         data = []
@@ -87,7 +106,6 @@ def insertFlightList(airportCode = '', ArrDepType = '', flightsfound = []):
         cur = conn.cursor()
         for row in data:
             cur.execute("""INSERT INTO public.AllFlights (AirportCode, ArrDepType, FlightNumber, date_added) VALUES (%s,%s,%s,%s)""" , row)
-        setAirportScraped(airportCode) 
         conn.commit()
     except:
         setAirportScraped(airportCode, 'ERROR') 
@@ -97,6 +115,76 @@ def insertFlightList(airportCode = '', ArrDepType = '', flightsfound = []):
     cur.close()
     conn.close()
 
+def setFlightScraped(FlightNumber = '', status = 'SCRAPED'):
+    '''set airport as UNSCRAPED/SCRAPED/SCRAPING/ERROR'''
+    try:
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.execute("""Update public.AllFlights set Status = %s where  FlightNumber = %s  """, (status,FlightNumber) )
+        if status == 'ERROR':
+            cur.execute("""Delete from public.ScrapedFlights where FlightNumber = %s  """, (FlightNumber) )
+        conn.commit()
+    except:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+
+#Scrapable Flights related
+def removeAllscrapable():
+    '''Truncates AllFlights table all records will be removed'''
+    try:
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.execute(""" truncate public.scrapedflights;""")
+        conn.commit()
+    except:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+def getNextFlight():
+    try:
+        '''Locks a flight number to Scraping and returns airport code'''
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.callproc("public.fnGetNextFlight")
+        rows = cur.fetchall()
+        cur.close()
+        conn.commit()
+        conn.close()
+        if len(rows) > 0:
+            return rows[0][0]
+        else:
+            return None
+    except:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+def insertScrapableFlightList(data = []):
+    '''Inserts scrapable flights into public.ScrapedFlights data 
+    should be a list of dict of all required fields and values'''
+    try:
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        for row in data:
+            row['date_scraped'] = str(datetime.datetime.now())
+            cur.execute("""INSERT INTO public.ScrapedFlights """ + dicttoInsert(row))
+        conn.commit()
+    except:
+        setFlightScraped(airportCode, 'ERROR') 
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
 
 #we should never run this module
 def main():
@@ -105,5 +193,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

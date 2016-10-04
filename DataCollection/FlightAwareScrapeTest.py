@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import urllib
+import requests
 
 #sample code here
 '''url = 'https://flightaware.com/live/flight/UAL88/history/20160924/0745Z/ZBAA/KEWR/tracklog'
@@ -20,6 +21,29 @@ for row in rows:
         data.append([ele for ele in cols if ele]) # Get rid of empty values'''
 
 
+
+def simulateGetAvailableFlightHistory():
+    retlist = []
+    data = {}
+    data['FlightDate'] = '20160930'
+    data['FlightNumber'] = 'UAL88'
+    data['AircraftType'] = 'B772'
+    data['Origin'] = 'ZBAA' 
+    data['Destination'] = 'KEWR'
+    data['Departure'] = '10/1/2016 12:10pm' 
+    data['Arrival'] = '10/2/2016 12:10pm'
+    data['DurationMin'] = 433 
+    data['ZuluTime'] = '1555Z'
+    data['DistancePlanned'] = 7016
+    data['DistanceFlown'] = 7279
+    data['DirectDistance'] = 6822
+    data['Route'] = 'GAYEL Q812 SYR TULEG YYB 5000N/08500W 5300N/09000W 5700N/09500W BINLO DUKPA 6900N/12000W SIKBU 7200N/14100W PILUN B969 BELEK B969 RODOK G495 KU G496 NAREM B161 SULOK Y327 POLHO G218 TMR B458 TZH A596 KM'
+    retlist.append(data)
+    return retlist
+
+
+
+
 def getAvailableFlightHistory(FlightNumber):
     '''Returns a list of dictionaries containing flights available to scrape:
        Dictionary entities available:
@@ -38,11 +62,11 @@ def getAvailableFlightHistory(FlightNumber):
     for row in rowodd:
         lstFlight = row.find('a')['href'].split('/')
         if len(lstFlight) == 9:
-            data.append({'FlightNumber':lstFlight[3], 'date':lstFlight[5], 'ZuluTime':lstFlight[6], 'DepartureAirportCode': lstFlight[7], 'ArrivalAirportCode': lstFlight[8]})
+            data.append({'FlightNumber':lstFlight[3], 'flightdate':lstFlight[5], 'ZuluTime':lstFlight[6], 'DepartureAirportCode': lstFlight[7], 'ArrivalAirportCode': lstFlight[8]})
     for row in roweven:
         lstFlight = row.find('a')['href'].split('/')
         if len(lstFlight) == 9:
-            data.append({'FlightNumber':lstFlight[3], 'date':lstFlight[5], 'ZuluTime':lstFlight[6], 'DepartureAirportCode': lstFlight[7], 'ArrivalAirportCode': lstFlight[8]})
+            data.append({'FlightNumber':lstFlight[3], 'flight':lstFlight[5], 'ZuluTime':lstFlight[6], 'DepartureAirportCode': lstFlight[7], 'ArrivalAirportCode': lstFlight[8]})
     return data
 
 def getFlightTrackLog2(flightInfoDict = {}):
@@ -90,59 +114,47 @@ def getFlightTrackLog(date = '', FlightNumber = '', ZuluTime = '', DepartureAirp
 
     return data
 
-def getAllDepartingFlights(AirportCode = '', number = 1000):
-    '''Scrape all flight departing from a specified airport:
-    AirportCode as 'KDEN'
-    '''
-    getMoreFlights = True
-    i = 0
-    
-    data = []
+def getAllArrivingFlights(airportCode):
+    '''returns list of all Arriving flights from a specified airportCode'''
+    try:
+        arrival = []
+        n = 0
+        page = True
+        while page is True:
+            url = "http://flightaware.com/live/airport/"+airportCode+"/arrivals?;offset="+str(20*n)+";order=actualarrivaltime;sort=DESC"
+            soup = BeautifulSoup(requests.get(url).content,"html.parser")
+            table = soup.find("table",{"class":"prettyTable fullWidth"})
+            for row in table.find_all('tr')[2:]:
+                flight = row.find_all("td")[0].text
+                if "Sorry" in flight:
+                    page = False
+                else:
+                    arrival.append(flight)
+            n +=1
+        return set(arrival)
+    except:
+        return None
 
-    while getMoreFlights:
-        url = 'http://flightaware.com/live/airport/'+AirportCode +'/departures?;offset='+ str(i)+';order=actualarrivaltime;sort=DESC'
-        r = urllib.urlopen(url).read()
-        soup = BeautifulSoup(r)
-        table = soup.find("table", class_="prettyTable")
-
-        rows = table.find_all("tr")
-
-        for row in rows:
-            if len(row.find_all('td')) == 6:
-                cols = row.find_all('td')
-                if not data.has_key(cols[0]):
-                    data.append(cols[0].text.encode("utf8").strip())
-        i += 20
-        if number / i < 1:
-            break
-    return data
-
-def getAllArrivingFlights(AirportCode = '', number = 1000):
-    '''Scrape all flight departing from a specified airport:
-    AirportCode as 'KDEN'
-    '''
-    getMoreFlights = True
-    i = 0
-    
-    data = []
-
-    while getMoreFlights:
-        url = 'http://flightaware.com/live/airport/'+AirportCode +'/arrivals?;offset='+ str(i)+';order=actualarrivaltime;sort=DESC'
-        r = urllib.urlopen(url).read()
-        soup = BeautifulSoup(r)
-        table = soup.find("table", class_="prettyTable")
-
-        rows = table.find_all("tr")
-
-        for row in rows:
-            if len(row.find_all('td')) == 5:
-                cols = row.find_all('td')
-                if not data.has_key(cols[0]):
-                    data.append(cols[0].text.encode("utf8").strip())
-        i += 20
-        if number / i < 1:
-            break
-    return data
+def getAllDepartingFlights(airportCode):
+    '''returns list of all Departing flights from a specified airportCode'''
+    try:
+        arrival = []
+        n = 0
+        page = True
+        while page is True:
+            url = "http://flightaware.com/live/airport/"+airportCode+"/departures?;offset="+str(20*n)+";order=actualarrivaltime;sort=DESC"
+            soup = BeautifulSoup(requests.get(url).content,"html.parser")
+            table = soup.find("table",{"class":"prettyTable fullWidth"})
+            for row in table.find_all('tr')[2:]:
+                flight = row.find_all("td")[0].text
+                if "Sorry" in flight:
+                    page = False
+                else:
+                    arrival.append(flight)
+            n +=1
+        return set(arrival)
+    except:
+        return None
 
 
 #we should never run this module

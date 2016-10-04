@@ -3,12 +3,31 @@ DROP TABLE IF EXISTS FlightLogs;
 DROP TABLE IF EXISTS public.ScrapedFlights;
 DROP TABLE IF EXISTS public.AllFlights;
 DROP TABLE IF EXISTS public.AllAirports;
+DROP TABLE IF EXISTS public.StatusType;
+
+
+CREATE TABLE public.StatusType(
+    id SERIAL primary key,
+	SType varchar(10) unique NOT NULL
+
+);
+
+INSERT INTO public.StatusType (SType) VALUES ('UNSCRAPED');
+INSERT INTO public.StatusType (SType) VALUES ('SCRAPED');
+INSERT INTO public.StatusType (SType) VALUES ('SCRAPING');
+INSERT INTO public.StatusType (SType) VALUES ('ERROR');
+
+ALTER TABLE public.StatusType
+  OWNER TO postgres;
+
+
 
 CREATE TABLE public.AllAirports (
     id SERIAL primary key,
     AirportCode varchar(20) NOT NULL,
 	AirportName varchar(100) NOT NULL,
-	Status varchar(20) default 'UNSCRAPED' NOT NULL,
+	Status varchar(20) default 'UNSCRAPED' references public.StatusType(SType)  NOT NULL,
+	ScrapedBy varchar(20) default '' NOT NULL,
     date_added timestamp default NULL
 );
 
@@ -20,8 +39,9 @@ CREATE TABLE public.AllFlights(
     id SERIAL primary key,
 	AirportCode varchar(20) NOT NULL,
 	ArrDepType varchar(10) NOT NULL,
-    FlightNumber varchar(20) NOT NULL,
-	Status varchar(20) default 'UNSCRAPED' NOT NULL,
+    FlightNumber varchar(20)  NOT NULL,
+	Status varchar(20) default 'UNSCRAPED'  references public.StatusType(SType)  NOT NULL,
+	ScrapedBy varchar(20) default '' NOT NULL,
     date_added timestamp default NULL
 );
 
@@ -31,23 +51,22 @@ ALTER TABLE public.AllFlights
 --Create flights that need to be scraped
 CREATE TABLE public.ScrapedFlights (
     id SERIAL primary key,
-    AllFlightsId bigint references public.AllFlights(id), 
     FlightDate date default NULL,
     FlightNumber varchar(20) NOT NULL,
     AircraftType varchar(20) NOT NULL,
-    Origin varchar(100) NOT NULL,
-    Destination varchar(100) NOT NULL,
+    Origin varchar(10) NOT NULL,
+    Destination varchar(10) NOT NULL,
     Departure timestamp NOT NULL,
     Arrival timestamp NOT NULL,
-    Duration varchar(20) NOT NULL,
+    DurationMin integer NOT NULL,
     ZuluTime varchar(20) NOT NULL,
     DistancePlanned integer NOT NULL,
     DistanceFlown integer NOT NULL,
     DirectDistance integer NOT NULL,
     Route varchar(500) NOT NULL,
 	Simulated boolean default 'False' NOT NULL,
-    Status varchar(20) default 'UNSCRAPED' NOT NULL,
-    ScrapedBy varchar(20) NOT NULL,
+    Status varchar(20) default 'UNSCRAPED' references public.StatusType(SType) NOT NULL,
+    ScrapedBy varchar(20) default '' NOT NULL,
     date_scraped date default NULL
 );
 

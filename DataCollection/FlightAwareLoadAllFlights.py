@@ -25,7 +25,7 @@ def main():
 
             #scrape all the arrivals into a list ['UAL88','UAL89']
             arrivals = PGScraper.getAllArrivingFlights(airportCode)
-            if len(arrivals) > 1:
+            if len(arrivals) > 0:
                 PGDBCon.insertFlightList(airportCode, 'ARRIVALS', arrivals)
             else:
                 PGDBCon.setAirportScraped(airportCode,'ERROR')
@@ -33,10 +33,13 @@ def main():
 
             #scrape all the arrivals into a list ['UAL88','UAL89']
             departures = PGScraper.getAllDepartingFlights(airportCode)
-            if len(arrivals) > 1:
+            if len(arrivals) > 0:
                 PGDBCon.insertFlightList(airportCode, 'DEPARTURES', departures)
             else:
                 PGDBCon.setAirportScraped(airportCode,'ERROR')
+
+
+            PGDBCon.setAirportScraped(airportCode) 
 
         except:
             PGDBCon.setAirportScraped(airportCode,'ERROR')

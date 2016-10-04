@@ -14,8 +14,8 @@ def main():
 
 
     #get all arriving flights to airport
-    arrivingFlights = FAScraper.getAllArrivingFlights('KEWR', 40)
-    departingFlights = FAScraper.getAllDepartingFlights('KEWR', 40)
+    arrivingFlights = FAScraper.getAllArrivingFlights('KEWR')
+    departingFlights = FAScraper.getAllDepartingFlights('KEWR')
 
 
     #find all scrapable flights
