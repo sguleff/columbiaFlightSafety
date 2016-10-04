@@ -12,6 +12,7 @@ def main():
     try:
         if WIPE_EXISTING:
             PGDBCon.removeAllFlights()
+            PGDBCon.setAllAirportsUnscraped()
     except:
         print "ERROR WIPING DATA"
     

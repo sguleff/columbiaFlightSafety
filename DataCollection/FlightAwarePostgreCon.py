@@ -1,7 +1,7 @@
 import psycopg2 as pg
 import datetime
 
-ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='*******'"
+ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='*****'"
 
 #UNSCRAPED/SCRAPED/SCRAPING/ERROR
 
@@ -82,6 +82,20 @@ def setAirportScraped(airportCode = '', status = 'SCRAPED'):
     cur.close()
     conn.close()
 
+def setAllAirportsUnscraped():
+    '''updates public.allairports table and sets them to UNSCRAPED'''
+    try:
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.execute(""" Update public.allairports set status = 'UNSCRAPED' """)
+        conn.commit()
+    except:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
 #Flight Related Methods
 def removeAllFlights():
     '''Truncates AllFlights table all records will be removed'''
@@ -98,7 +112,7 @@ def removeAllFlights():
     conn.close()
 
 def setAllFlightsUnscraped():
-    '''updates publicAllFlights table and sets them to UNSCRAPED'''
+    '''updates public.allflights table and sets them to UNSCRAPED'''
     try:
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
@@ -110,7 +124,6 @@ def setAllFlightsUnscraped():
     # Close communication with the database
     cur.close()
     conn.close()
-
 
 def insertFlightList(airportCode = '', ArrDepType = '', flightsfound = []):
     try:
