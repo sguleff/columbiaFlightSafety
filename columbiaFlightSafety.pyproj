@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{5a543e65-b8a5-4abb-8761-2a19d3d25cec}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>DataCollection\FlightAwareLoadAllFlights.py</StartupFile>
+    <StartupFile>DataCollection\FlightAwareLoadAllFlightLogs.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -22,6 +22,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DataCollection\FlightAwareAPITest.py" />
+    <Compile Include="DataCollection\FlightAwareLoadAllFlightLogs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataCollection\FlightAwareLoadAllFlights.py">
       <SubType>Code</SubType>
     </Compile>
@@ -36,6 +39,9 @@
     </Compile>
     <Compile Include="DataCollection\FlightAwareScrapeTest.py" />
     <Compile Include="DataCollection\FlightAwareLoadAllAirports.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataCollection\GlobalSettings.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

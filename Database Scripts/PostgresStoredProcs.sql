@@ -43,10 +43,10 @@ declare
 	FlightId integer;
 	thecount integer;
 BEGIN
-	SELECT count(*) into thecount FROM public.scrapedflights WHERE Status = 'UNSCRAPED' order by flightdate ASC limit 1;
+	SELECT count(*) into thecount FROM public.ScrapedFlights WHERE Status = 'UNSCRAPED' limit 1;
 	if (thecount > 0) Then
-		SELECT flightnumber into FlightId FROM public.allflights WHERE Status = 'UNSCRAPED' order by flightdate ASC limit 1;
-		UPDATE public.scrapedflights set Status = 'SCRAPING', date_added = NOW() where  id = FlightId;
+		SELECT Id into FlightId FROM public.ScrapedFlights WHERE Status = 'UNSCRAPED' order by FlightDate ASC limit 1;
+		UPDATE public.scrapedflights set Status = 'SCRAPING', date_scraped = NOW() where  id = FlightId;
 	end if;
 	RETURN FlightId;
 END;

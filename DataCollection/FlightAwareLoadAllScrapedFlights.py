@@ -2,10 +2,9 @@ import FlightAwarePostgreCon as PGDBCon
 import FlightAwareScrapeTest as PGScraper
    
 ###### THIS WILL REMOVE ALL EXISTING DATA
-WIPE_EXISTING = True
+WIPE_EXISTING = False
 
 
-#we should never run this module
 def main():
     airportCode = ''
 

@@ -88,8 +88,8 @@ CREATE TABLE FlightLogs (
 	Elevation integer NOT NULL,
 	AscRate integer NULL,
 	ReportingFacility varchar(100) NOT NULL,
-	Simulated boolean NOT NULL,
-    ScrapedBy timestamp default NULL,
+	Simulated boolean default 'False' NOT NULL,
+    ScrapedBy varchar(20) default NULL,
     date_added timestamp default NULL
 );
 

@@ -20,20 +20,18 @@ for row in rows:
     if len(cols) == 10:
         data.append([ele for ele in cols if ele]) # Get rid of empty values'''
 
-
-
 def simulateGetAvailableFlightHistory():
     retlist = []
     data = {}
     data['FlightDate'] = '20160930'
     data['FlightNumber'] = 'UAL88'
     data['AircraftType'] = 'B772'
-    data['Origin'] = 'ZBAA' 
-    data['Destination'] = 'KEWR'
+    data['Origin'] = 'KEWR' 
+    data['Destination'] = 'ZBAA'
     data['Departure'] = '10/1/2016 12:10pm' 
     data['Arrival'] = '10/2/2016 12:10pm'
     data['DurationMin'] = 433 
-    data['ZuluTime'] = '1555Z'
+    data['ZuluTime'] = '0745Z'
     data['DistancePlanned'] = 7016
     data['DistanceFlown'] = 7279
     data['DirectDistance'] = 6822
@@ -41,8 +39,22 @@ def simulateGetAvailableFlightHistory():
     retlist.append(data)
     return retlist
 
+def simulateGetFlightTrackLog(date = '19010101', FlightNumber = 'UA88', ZuluTime = '1245Z', DepartureAirportCode = 'DDDD', ArrivalAirportCode = 'AAAA'):
+    retlist = []
+    data = {}
 
-
+    data['UniversalTime'] = '19010101'
+    data['Latitude'] = 11.22
+    data['Longitude'] = -145.22 
+    data['Course'] = 123
+    data['Direction'] = 'NorthEast'
+    data['KTS'] = 543
+    data['MPH'] = 433 
+    data['Elevation'] = 35000
+    data['AscRate'] = 1200
+    data['ReportingFacility'] = 'Boston Center'
+    retlist.append(data)
+    return retlist
 
 def getAvailableFlightHistory(FlightNumber):
     '''Returns a list of dictionaries containing flights available to scrape:
@@ -93,9 +105,10 @@ def getFlightTrackLog(date = '', FlightNumber = '', ZuluTime = '', DepartureAirp
        ArrivalAirportCode as 'KEWR'
        '''
     url = 'https://flightaware.com/live/flight/' + FlightNumber + '/history/'+ date +'/' + ZuluTime +'/'+ DepartureAirportCode +'/'+ ArrivalAirportCode+ '/tracklog'
-    r = urllib.urlopen(url).read()
-    soup = BeautifulSoup(r)
 
+
+    r = urllib.urlopen(url).read()
+    soup = BeautifulSoup(r, "lxml")
     table = soup.find("table", {"id":"tracklogTable"})
 
     #sometimes we will not get flight details
@@ -103,15 +116,22 @@ def getFlightTrackLog(date = '', FlightNumber = '', ZuluTime = '', DepartureAirp
         return None
 
     data = []
-
     rows = table.find_all('tr')
-
     for row in rows:
         cols = row.find_all('td')
-        cols = [ele.text.strip() for ele in cols]
+        timestamp = re.findall(r'<td align="left"><span class="show-for-medium-up-table">(.+)</span><span class="hide-for-medium-up">.+</span></td>', str(cols[0]))[0]
+        latitude = re.findall(r'<td align="right"><span class="show-for-medium-up-table">(-*\d+.\d+)</span><span class="hide-for-medium-up">-*\d+\.\d+</span></td>', str(cols[1]))[0]
+        longitude = re.findall(r'<td align="right"><span class="show-for-medium-up-table">(-*\d+.\d+)</span><span class="hide-for-medium-up">-*\d+\.\d+</span></td>', str(cols[2]))[0]
+        course = re.findall(r'\d+', str(cols[3]))[0]
+        direction = re.findall(r'<td align="left"><span class="show-for-medium-up-table">(\w+)</span>', str(cols[4]))[0]
+        KTS = re.findall(r'<td align="right">(\d+)</td>', str(cols[5]))[0]
+        MPH = re.findall(r'(\d+)', str(cols[6]))[0]
+        feet = re.findall(r'(\d+,*\d+)', str(cols[7]))[0]
+        rate = None
+        reporting_facility = re.findall(r'<td align="left" class="show-for-large-up-table"><img height="12" src="https://flightaware.com/images/live/center.gif" width="12"/> (\w+.+)</td>', str(cols[9]))
+        cols = [timestamp, latitude, longitude, course, direction, KTS, MPH, feet, rate, reporting_facility]
         if len(cols) == 10:
-            data.append([ele for ele in cols if ele]) # Get rid of empty values
-
+            data.append([ele for ele in cols]) # append all values (even None)
     return data
 
 def getAllArrivingFlights(airportCode):

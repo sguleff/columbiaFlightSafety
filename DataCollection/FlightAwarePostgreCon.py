@@ -1,7 +1,8 @@
 import psycopg2 as pg
 import datetime
+import GlobalSettings
 
-ConnectionString = "dbname='FlightAware' user='FlightAware_rw' host='104.45.131.212' password='*****'"
+ConnectionString = GlobalSettings.ConnectionString
 
 #UNSCRAPED/SCRAPED/SCRAPING/ERROR
 
@@ -45,8 +46,8 @@ def insertAirports(Airports = []):
     conn.close()
 
 def getNextAirport():
+    '''Locks an airport code to Scraping and returns airport code'''
     try:
-        '''Locks an airport code to Scraping and returns airport code'''
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
         cur.callproc("public.fngetnextairport")
@@ -175,9 +176,23 @@ def removeAllscrapable():
     cur.close()
     conn.close()
 
-def getNextFlight():
+def setAllScrapableFlightsUnscraped():
+    '''updates public.allflights table and sets them to UNSCRAPED'''
     try:
-        '''Locks a flight number to Scraping and returns airport code'''
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.execute(""" Update public.scrapedflights set status = 'UNSCRAPED' """)
+        conn.commit()
+    except:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+def getNextFlight():
+    '''gets the flight number of the next flight and sets status to scraping'''
+    try:
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
         cur.callproc("public.fnGetNextFlight")
@@ -204,6 +219,7 @@ def insertScrapableFlightList(data = []):
         cur = conn.cursor()
         for row in data:
             row['date_scraped'] = str(datetime.datetime.now())
+            row['ScrapedBy'] = GlobalSettings.SCRAPER_ID
             cur.execute("""INSERT INTO public.ScrapedFlights """ + dicttoInsert(row))
         conn.commit()
     except:
@@ -214,10 +230,107 @@ def insertScrapableFlightList(data = []):
     cur.close()
     conn.close()
 
+def setScrapableFlightScraped(id = -1, status = 'SCRAPED'):
+    '''set ScrapedFlights as UNSCRAPED/SCRAPED/SCRAPING/ERROR'''
+    try:
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.execute("""Update public.scrapedFlights set Status = %s where  id = %s  """, (status, id) )
+        if status == 'ERROR':
+            cur.execute("""Delete from public.flightLogs where ScrapedFlights = %s  """, (id) )
+        conn.commit()
+    except:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+#Log related
+
+def getNextScrapableFlight():
+    try:
+        '''Locks a flight number to Scraping and returns airport code'''
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.execute("select * from public.fnGetNextLog();")
+        rows = cur.fetchall()
+        cur.close()
+        conn.commit()
+        conn.close()
+        if len(rows) > 0:
+            return rows[0][0]
+        else:
+            return None
+    except Exception:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+ #(date = '', FlightNumber = '', ZuluTime = '', DepartureAirportCode = '', ArrivalAirportCode = '') RPAD(numcol::text, 3, '0')
+
+def getNextScrapableFlightDetails(id = -1):
+    '''Returns tuple of data needed to scrape a flight based on the id field of the flight'''
+    try:
+        '''Locks a flight number to Scraping and returns airport code'''
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.execute("select cast(date_part('year',FlightDate) as text) || LPAD(cast(date_part('month',FlightDate) as text),2,'0') || LPAD(cast (date_part('day',FlightDate) as text),2,'0') as formatedFlightDate, FlightNumber, ZuluTime, Destination as DepartureAirportCode,  Origin as ArrivalAirportCode from  public.scrapedFlights where id = " + str(id))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        if len(rows) > 0:
+            return (rows[0][0], rows[0][1], rows[0][2], rows[0][3], rows[0][4])
+        else:
+            return None
+    except:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+def removeAllLogs():
+    '''Truncates All flightLogs table all records will be removed'''
+    try:
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        cur.execute(""" truncate public.flightLogs;""")
+        conn.commit()
+    except:
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+def insertFlightLogs(id = -1, data = []):
+    '''Inserts flight Logs into public.FlightLogs data 
+    should be a list of dict of all required fields and values'''
+    try:
+        conn = pg.connect(ConnectionString)
+        cur = conn.cursor()
+        for row in data:
+            row['date_added'] = str(datetime.datetime.now())
+            row['ScrapedFlights'] = id
+            row['Simulated'] = 'False'
+            row['ScrapedBy'] = GlobalSettings.SCRAPER_ID
+            cur.execute("""INSERT INTO public.FlightLogs """ + dicttoInsert(row))
+        conn.commit()
+    except Exception:
+        setScrapableFlightScraped(id, 'ERROR') 
+        conn.rollback()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+
 #we should never run this module
 def main():
     pass
-
 
 if __name__ == "__main__":
     main()
