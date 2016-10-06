@@ -65,21 +65,122 @@ def getAvailableFlightHistory(FlightNumber):
            DepartureAirportCode as 'ZBAA'
            ArrivalAirportCode as 'KEWR'
        '''
-    url = 'https://flightaware.com/live/flight/' + FlightNumber
-    r = urllib.urlopen(url).read()
-    soup = BeautifulSoup(r)
-    data = []
-    rowodd = soup.find_all("tr", class_="smallActiverow1")
-    roweven = soup.find_all("tr", class_="smallActiverow2")
-    for row in rowodd:
-        lstFlight = row.find('a')['href'].split('/')
-        if len(lstFlight) == 9:
-            data.append({'FlightNumber':lstFlight[3], 'flightdate':lstFlight[5], 'ZuluTime':lstFlight[6], 'DepartureAirportCode': lstFlight[7], 'ArrivalAirportCode': lstFlight[8]})
-    for row in roweven:
-        lstFlight = row.find('a')['href'].split('/')
-        if len(lstFlight) == 9:
-            data.append({'FlightNumber':lstFlight[3], 'flight':lstFlight[5], 'ZuluTime':lstFlight[6], 'DepartureAirportCode': lstFlight[7], 'ArrivalAirportCode': lstFlight[8]})
-    return data
+    try:
+        flighthistory = []
+        next = True
+        
+        #first availible history:
+        aircraft = ""
+        date = ""
+        origin = ""
+        destination = "" 
+        arriavl = ""
+        departure = ""
+        duration = ""
+        zulutime = ""
+        distance_planned = ""
+        distance_flown = ""
+        distance_direct = ""
+        route = ""
+
+        linkinfo = []
+        #get the parts to form link:
+        url = "http://flightaware.com/live/flight/"+FlightNumber+"/history"
+        r = urllib.urlopen(url).read()
+        soup = BeautifulSoup(r,"lxml")
+        table = soup.find("table",{"class":"prettyTable fullWidth tablesaw tablesaw-stack"})
+        aircraft = str(table.find_all("tr")[2].find_all("td")[1].text)
+        link = [x['href'] for x in table.find_all("a")]
+        link = [x for x in link if "history" in x]
+        link = [x.split("/")[-3:] for x in link]
+        k = sorted(link)
+        linkinfo = [k[i] for i in range(len(k)) if i == 0 or k[i] != k[i-1]]
+        #set startingdate
+        date = 20161003
+        
+        next = True
+        #number of possible links:
+        while next:
+            #try if any route works
+            for n in linkinfo:
+                data = {}
+                date = str(date)
+                zulutime = n[0]
+                origin = n[1]
+                destination = n[2]
+                url = "http://flightaware.com/live/flight/"+FlightNumber+"/history/"+str(date)+"/"+zulutime+"/"+origin+"/"+destination
+                r = urllib.urlopen(url).read()
+                soup = BeautifulSoup(r,"lxml")
+
+                #check if combination exist:
+                tables = soup.find_all("table") 
+                if len(tables) != 8:
+                    continue
+                #if len(tables) == 8:
+                else:
+                    table1 = soup.find("table",{"class":"track-panel-course"})
+                    l = table1.find_all("tr")[1].find_all("td")
+
+                    #DEPARTURE
+                    departure = l[0].text.encode('utf-8').strip('\n')[0:7]
+                    departure = datetime.strptime(str(date + departure),"%Y%m%d%I:%M%p")
+                    
+                    #ARRIVAL
+                    arrival = l[1].text.encode('utf-8').strip('\n').replace('\xc2\xa0', '')
+                    if '(+1)' in arrival:
+                        arrival = datetime.strptime(str(date + arrival[0:7]),"%Y%m%d%I:%M%p") + timedelta(days=1)
+                    else:
+                        arrival = datetime.strptime(str(date + arrival[0:7]),"%Y%m%d%I:%M%p")
+                    
+                    #DURATION
+                    duration = soup.find("div",{"class":"track-panel-duration"}).text.split(":")[1].strip()
+                    duration = duration.encode('utf-8').split(" ")
+                    hour = 0
+                    if len(duration)> 2:
+                        hour = int(duration[0])
+                        duration = 60*hour + int(duration[2])
+                    else:
+                        duration = int(duration[0])
+                    
+                    #DISTANCE AND ROUTE
+                    table2 = soup.find("table",{"class":"layout-table track-panel-data"})
+                    for row in table2.find_all("tr"):
+                        if row.find("th").text == "Distance":
+                            distance = row.find("td").text.encode('utf-8').strip('\n').split("sm")
+                            distance_direct = distance[0].split(":")[1].replace(",","")
+                            distance_planned = distance[1].split(":")[1].replace(",","")
+                            if len(distance) > 3:
+                                distance_flown = distance[2].split(":")[1].replace(",","")
+                        elif row.find("th").text == "Route":
+                            route = row.find("td").text.encode('utf-8')
+                        
+                        #output data:
+                    data['FlightDate'] = str(date)
+                    data['FlightNumber'] = str(FlightNumber)
+                    data['AircraftType'] = str(aircraft)
+                    data['Origin'] = str(origin)
+                    data['Destination'] = str(destination)
+                    data['Departure'] = str(departure.strftime("%Y-%m-%d %I:%M %p"))
+                    data['Arrival'] = str(arrival.strftime("%Y-%m-%d %I:%M %p"))
+                    data['DurationMin'] = int(duration) 
+                    data['ZuluTime'] = str(zulutime)
+                    data['DistancePlanned'] = int(distance_planned)
+                    data['DistanceFlown'] = int(distance_flown)
+                    data['DirectDistance'] = int(distance_direct)
+                    data['Route'] = str(route)
+                    
+                    flighthistory.append(data)
+               
+            date_format = datetime.strptime(str(date),"%Y%m%d")
+            yesterday = date_format - timedelta(days=1)
+            date = yesterday.strftime("%Y%m%d")
+            #set end period:
+            if int(date) < 20160900:
+                next = False  
+
+        return  flighthistory
+    except:
+        return  None
 
 def getFlightTrackLog2(flightInfoDict = {}):
     '''scrape a flight track log from a flight given a dictionary containing:

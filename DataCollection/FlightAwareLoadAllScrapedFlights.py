@@ -20,7 +20,7 @@ def main():
     while True:
         try:
             #get the next available airport code
-            flight = PGDBCon.getNextFlight()
+            flight = PGDBCon.getNextFlight().strip(" ")
             if flight == None:
                 break
 
