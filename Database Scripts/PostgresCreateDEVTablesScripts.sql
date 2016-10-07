@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS dev.ScrapedFlights;
 DROP TABLE IF EXISTS dev.AllFlights;
 DROP TABLE IF EXISTS dev.AllAirports;
 DROP TABLE IF EXISTS dev.StatusType;
-
+DROP TABLE IF EXISTS dev.Runs;
 
 CREATE TABLE dev.StatusType(
     id SERIAL primary key,
@@ -19,6 +19,20 @@ INSERT INTO dev.StatusType (SType) VALUES ('ERROR');
 
 ALTER TABLE dev.StatusType
   OWNER TO postgres;
+
+  
+CREATE TABLE dev.Runs(
+    id SERIAL primary key,
+	RunType varchar(25),
+    StartTime timestamp NOT NULL,
+	EndTime timestamp NOT NULL,
+	Status varchar(20) default 'UNSCRAPED' references public.StatusType(SType)  NOT NULL,
+    date_added timestamp default NOW()
+);
+
+ALTER TABLE dev.Runs
+  OWNER TO postgres;
+
 
 
 

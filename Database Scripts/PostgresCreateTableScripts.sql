@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS public.ScrapedFlights;
 DROP TABLE IF EXISTS public.AllFlights;
 DROP TABLE IF EXISTS public.AllAirports;
 DROP TABLE IF EXISTS public.StatusType;
-
+DROP TABLE IF EXISTS public.Runs;
 
 CREATE TABLE public.StatusType(
     id SERIAL primary key,
@@ -18,6 +18,20 @@ INSERT INTO public.StatusType (SType) VALUES ('SCRAPING');
 INSERT INTO public.StatusType (SType) VALUES ('ERROR');
 
 ALTER TABLE public.StatusType
+  OWNER TO postgres;
+
+
+
+CREATE TABLE public.Runs(
+    id SERIAL primary key,
+	RunType varchar(25),
+    StartTime timestamp NOT NULL,
+	EndTime timestamp NOT NULL,
+	Status varchar(20) default 'UNSCRAPED' references public.StatusType(SType)  NOT NULL,
+    date_added timestamp default NOW()
+);
+
+ALTER TABLE public.Runs
   OWNER TO postgres;
 
 

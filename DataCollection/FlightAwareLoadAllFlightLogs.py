@@ -3,7 +3,7 @@ import FlightAwareScrapeTest as PGScraper
    
 ###### THIS WILL REMOVE ALL EXISTING DATA
 WIPE_EXISTING = False
-SIMULATE = True
+SIMULATE = False
 
 def main():
 

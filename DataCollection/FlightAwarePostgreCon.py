@@ -3,7 +3,7 @@ import datetime
 import GlobalSettings
 
 ConnectionString = GlobalSettings.ConnectionString
-environment = GlobalSettings.ENVIRONMENT
+#environment = GlobalSettings.ENVIRONMENT
 
 #UNSCRAPED/SCRAPED/SCRAPING/ERROR
 
@@ -100,11 +100,11 @@ def setAllAirportsUnscraped():
 
 #Flight Related Methods
 def removeAllFlights():
-    '''Truncates AllFlights table all records will be removed'''
+    ''' delete from  AllFlights table all records will be removed'''
     try:
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
-        cur.execute(""" truncate public.allflights;""")
+        cur.execute("""  delete from  public.allflights;""")
         conn.commit()
     except:
         conn.rollback()
@@ -162,14 +162,13 @@ def setFlightScraped(FlightNumber = '', status = 'SCRAPED'):
     cur.close()
     conn.close()
 
-
 #Scrapable Flights related
 def removeAllscrapable():
-    '''Truncates AllFlights table all records will be removed'''
+    ''' delete from  AllFlights table all records will be removed'''
     try:
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
-        cur.execute(""" truncate public.scrapedflights;""")
+        cur.execute("""  delete from  public.scrapedflights;""")
         conn.commit()
     except:
         conn.rollback()
@@ -295,11 +294,11 @@ def getNextScrapableFlightDetails(id = -1):
     conn.close()
 
 def removeAllLogs():
-    '''Truncates All flightLogs table all records will be removed'''
+    ''' delete from All flightLogs table all records will be removed'''
     try:
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
-        cur.execute(""" truncate public.flightLogs;""")
+        cur.execute(""" delete from public.flightLogs;""")
         conn.commit()
     except:
         conn.rollback()
