@@ -18,8 +18,6 @@ def main():
 
     while True:
         try:
-            flight = 'UAL1838'
-            PGDBCon.setFlightScraped(flight,'ERROR')
             #get the next available airport code
             flight = PGDBCon.getNextFlight()
 
