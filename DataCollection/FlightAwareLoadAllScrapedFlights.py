@@ -6,31 +6,30 @@ WIPE_EXISTING = False
 
 
 def main():
-    airportCode = ''
 
     try:
         if WIPE_EXISTING:
             PGDBCon.removeAllscrapable()
             PGDBCon.setAllFlightsUnscraped()
             return
+
     except:
         print "ERROR WIPING DATA"
-    
 
     while True:
         try:
+            flight = 'UAL1838'
+            PGDBCon.setFlightScraped(flight,'ERROR')
             #get the next available airport code
-            flight = PGDBCon.getNextFlight().strip(" ")
-            
+            flight = PGDBCon.getNextFlight()
+
             if flight == None:
                 break
 
             print "getting Flight:" +  flight
-            #scrape all the arrivals into a list ['UAL88','UAL89']
-            availableScrapes = PGScraper.getAvailableFlightHistory(flight)
 
-            #availableScrapes = PGScraper.simulateGetAvailableFlightHistory()
-            #PGDBCon.insertScrapableFlightList(availableScrapes)
+            #scrape all the arrivals into a list ['UAL88','UAL89']
+            availableScrapes = PGScraper.getAvailableFlightHistory(flight.strip(" "))
 
             if len(availableScrapes) > 0:
                 print "Loading Flight:" +  flight + " Total Lines: " + str(len(availableScrapes))
@@ -38,15 +37,11 @@ def main():
             else:
                 PGDBCon.setFlightScraped(flight,'ERROR')
                 continue
-
             PGDBCon.setFlightScraped(flight)
-
         except:
             PGDBCon.setFlightScraped(flight,'ERROR')
 
 
+
 if __name__ == "__main__":
     main()
-
-
-

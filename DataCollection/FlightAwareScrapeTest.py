@@ -1,6 +1,11 @@
 from bs4 import BeautifulSoup
 import urllib
 import requests
+from datetime import datetime
+from datetime import timedelta
+import itertools
+
+
 
 #sample code here
 '''url = 'https://flightaware.com/live/flight/UAL88/history/20160924/0745Z/ZBAA/KEWR/tracklog'
@@ -97,7 +102,7 @@ def getAvailableFlightHistory(FlightNumber):
         linkinfo = [k[i] for i in range(len(k)) if i == 0 or k[i] != k[i-1]]
         #set startingdate
         date = 20161003
-        
+
         next = True
         #number of possible links:
         while next:
@@ -105,16 +110,16 @@ def getAvailableFlightHistory(FlightNumber):
             for n in linkinfo:
                 data = {}
                 date = str(date)
+                date_format = datetime.strptime(str(date),"%Y%m%d")
                 zulutime = n[0]
                 origin = n[1]
                 destination = n[2]
                 url = "http://flightaware.com/live/flight/"+FlightNumber+"/history/"+str(date)+"/"+zulutime+"/"+origin+"/"+destination
                 r = urllib.urlopen(url).read()
                 soup = BeautifulSoup(r,"lxml")
-
                 #check if combination exist:
                 tables = soup.find_all("table") 
-                if len(tables) != 8:
+                if len(tables) != 8 :
                     continue
                 #if len(tables) == 8:
                 else:
@@ -122,15 +127,23 @@ def getAvailableFlightHistory(FlightNumber):
                     l = table1.find_all("tr")[1].find_all("td")
 
                     #DEPARTURE
-                    departure = l[0].text.encode('utf-8').strip('\n')[0:7]
-                    departure = datetime.strptime(str(date + departure),"%Y%m%d%I:%M%p")
+                    departure = l[0].text.encode('utf-8').strip('\n').strip(" ").replace('\xc2\xa0', '')
+                    dezone =  departure[7:10]
+                    #print dezone
+                    #print datetime.strptime(str(date + departure[0:7]+" "+departure[7:10]),"%Y%m%d%I:%M%p %Z")
+                    departure = datetime.strptime(str(date + departure[0:7]),"%Y%m%d%I:%M%p")
+                    #departure = str(date_format) + departure
+                    #print departure
                     
                     #ARRIVAL
                     arrival = l[1].text.encode('utf-8').strip('\n').replace('\xc2\xa0', '')
+                    azone = arrival[7:10]
                     if '(+1)' in arrival:
                         arrival = datetime.strptime(str(date + arrival[0:7]),"%Y%m%d%I:%M%p") + timedelta(days=1)
+                        #arrival = str(date_format + timedelta(days=1)) + arrival
                     else:
                         arrival = datetime.strptime(str(date + arrival[0:7]),"%Y%m%d%I:%M%p")
+                        #arrival = str(date_format)+ arrival
                     
                     #DURATION
                     duration = soup.find("div",{"class":"track-panel-duration"}).text.split(":")[1].strip()
@@ -160,8 +173,8 @@ def getAvailableFlightHistory(FlightNumber):
                     data['AircraftType'] = str(aircraft)
                     data['Origin'] = str(origin)
                     data['Destination'] = str(destination)
-                    data['Departure'] = str(departure.strftime("%Y-%m-%d %I:%M %p"))
-                    data['Arrival'] = str(arrival.strftime("%Y-%m-%d %I:%M %p"))
+                    data['Departure'] = str(departure.strftime("%B %d %H:%M:%S %Y")) + " "+dezone
+                    data['Arrival'] = str(arrival.strftime("%B %d %H:%M:%S %Y")) +" "+azone
                     data['DurationMin'] = int(duration) 
                     data['ZuluTime'] = str(zulutime)
                     data['DistancePlanned'] = int(distance_planned)
@@ -175,7 +188,7 @@ def getAvailableFlightHistory(FlightNumber):
             yesterday = date_format - timedelta(days=1)
             date = yesterday.strftime("%Y%m%d")
             #set end period:
-            if int(date) < 20160900:
+            if int(date) < 20160910:
                 next = False  
 
         return  flighthistory

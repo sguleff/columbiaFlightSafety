@@ -3,6 +3,7 @@ import datetime
 import GlobalSettings
 
 ConnectionString = GlobalSettings.ConnectionString
+environment = GlobalSettings.ENVIRONMENT
 
 #UNSCRAPED/SCRAPED/SCRAPING/ERROR
 
@@ -74,7 +75,7 @@ def setAirportScraped(airportCode = '', status = 'SCRAPED'):
         cur = conn.cursor()
         cur.execute("""Update public.allairports set Status = %s where  AirportCode = %s  """, (status,airportCode) )
         if status == 'ERROR':
-            cur.execute("""Delete from public.AllFlights where AirportCode = %s  """, (airportCode) )
+            cur.execute("""Delete from public.AllFlights where AirportCode = %s  """, (airportCode,) )
         conn.commit()
     except:
         conn.rollback()
@@ -151,9 +152,10 @@ def setFlightScraped(FlightNumber = '', status = 'SCRAPED'):
         cur = conn.cursor()
         cur.execute("""Update public.AllFlights set Status = %s where  FlightNumber = %s  """, (status,FlightNumber) )
         if status == 'ERROR':
-            cur.execute("""Delete from public.ScrapedFlights where FlightNumber = %s  """, (FlightNumber) )
+            #cur.execute("""Delete from {0}.ScrapedFlights where FlightNumber = %s """.format(environment), (FlightNumber,) )
+            cur.execute("""Delete from public.ScrapedFlights where FlightNumber = %s """, (FlightNumber,) )
         conn.commit()
-    except:
+    except Exception:
         conn.rollback()
 
     # Close communication with the database
@@ -237,7 +239,7 @@ def setScrapableFlightScraped(id = -1, status = 'SCRAPED'):
         cur = conn.cursor()
         cur.execute("""Update public.scrapedFlights set Status = %s where  id = %s  """, (status, id) )
         if status == 'ERROR':
-            cur.execute("""Delete from public.flightLogs where ScrapedFlights = %s  """, (id) )
+            cur.execute("""Delete from public.flightLogs where ScrapedFlights = %s  """, (id,) )
         conn.commit()
     except:
         conn.rollback()

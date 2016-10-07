@@ -3,13 +3,13 @@ import FlightAwareScrapeTest as PGScraper
    
 ###### THIS WILL REMOVE ALL EXISTING DATA
 WIPE_EXISTING = False
-SIMULATE = False
+SIMULATE = True
 
 def main():
 
     if SIMULATE:
-        data = PGScraper.simulateGetAvailableFlightHistory()
-        PGDBCon.insertScrapableFlightList(data)
+        #data = PGScraper.simulateGetAvailableFlightHistory()
+        #PGDBCon.insertScrapableFlightList(data)
         id = PGDBCon.getNextScrapableFlight()
         flightDetails = PGDBCon.getNextScrapableFlightDetails(id)
         availableScrapes = PGScraper.getFlightTrackLog(flightDetails[0],flightDetails[1],flightDetails[2],flightDetails[3],flightDetails[4] )

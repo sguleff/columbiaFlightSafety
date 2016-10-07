@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{5a543e65-b8a5-4abb-8761-2a19d3d25cec}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>DataCollection\FlightAwareLoadAllFlightLogs.py</StartupFile>
+    <StartupFile>DataCollection\FlightAwareLoadAllScrapedFlights.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -50,7 +50,9 @@
     <Folder Include="DataCollection" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Database Scripts\PostgresCreateDEVTablesScripts.sql" />
     <Content Include="Database Scripts\PostgresCreateTableScripts.sql" />
+    <Content Include="Database Scripts\PostgresLoadDEV.sql" />
     <Content Include="Database Scripts\PostgresStoredProcs.sql" />
     <Content Include="DataCollection\rawAirports.txt" />
   </ItemGroup>
