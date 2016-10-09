@@ -128,6 +128,8 @@ def getAvailableFlightHistory(FlightNumber):
 
                     #DEPARTURE
                     departure = l[0].text.encode('utf-8').strip('\n').strip(" ").replace('\xc2\xa0', '')
+                    if "Cancelled" in departure:
+                        continue
                     dezone =  departure[7:10]
                     #print dezone
                     #print datetime.strptime(str(date + departure[0:7]+" "+departure[7:10]),"%Y%m%d%I:%M%p %Z")

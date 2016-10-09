@@ -44,6 +44,9 @@
     <Compile Include="DataCollection\GlobalSettings.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Scraper.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Database Scripts\" />
