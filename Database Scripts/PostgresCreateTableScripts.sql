@@ -1,4 +1,4 @@
-﻿--Create global list of all flights
+--Create global list of all flights
 DROP TABLE IF EXISTS public.FlightLogs;
 DROP TABLE IF EXISTS public.ScrapedFlights;
 DROP TABLE IF EXISTS public.AllFlights;
@@ -91,20 +91,20 @@ ALTER TABLE public.ScrapedFlights
 --Store Flight Log
 CREATE TABLE public.FlightLogs (
     id SERIAL primary key,
-    ScrapedFlights bigint references ScrapedFlights(id),
-    UniversalTime timestamp NOT NULL,
+    ScrapedFlightsId bigint references ScrapedFlights(id),
+    fTimeStamp timestamp NOT NULL,
 	Latitude real NOT NULL,
 	Longitude real NOT NULL,
 	Course integer NOT NULL,
 	Direction varchar(15) NOT NULL,
-	KTS integer NOT NULL,
-	MPH integer NOT NULL,
-	Elevation integer NOT NULL,
-	AscRate integer NULL,
+	KTS integer,
+	MPH integer,
+	Elevation integer,
+	AscRate integer,
 	ReportingFacility varchar(100) NOT NULL,
 	Simulated boolean default 'False' NOT NULL,
     ScrapedBy varchar(20) default NULL,
-    date_added timestamp default NULL
+    date_updated timestamp default NULL
 );
 
 ALTER TABLE public.FlightLogs
@@ -114,11 +114,11 @@ ALTER TABLE public.FlightLogs
 /*
 insert into public.AllFlights (
     FlightNumber ,
-    date_added) values ('UA88', '10/1/2016')
+    date_updated) values ('UA88', '10/1/2016')
 ;
 
 insert into public.ScrapedFlights (
-    AllFlightsId , 
+    AllFlightsId ,
     FlightDate ,
     FlightNumber ,
     AircraftType ,
@@ -130,8 +130,8 @@ insert into public.ScrapedFlights (
     ZuluTime ,
     Status ,
     ScrapedBy ,
-    date_scraped 
-) values (1 , 
+    date_scraped
+) values (1 ,
     '9/30/2016' ,
     'UA88' ,
     '77734' ,

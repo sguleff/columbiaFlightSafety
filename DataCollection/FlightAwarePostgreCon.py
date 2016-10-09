@@ -23,10 +23,14 @@ def dicttoInsert(data = {}):
     retString = retString[:-2] + ') VALUES ('
 
     for i in listvalues:
-        if type(i) is int or type(i) is float or type(i) is long or type(i) is complex :
-            retString += ' ' + str(i) + ', '
+        if i is None:
+            retString += 'NULL, '
         else:
-            retString += '\'' + str(i) + '\', '
+            if type(i) is int or type(i) is float or type(i) is long or type(i) is complex :
+                retString += ' ' + str(i) + ', '
+            else:
+                retString += '\'' + str(i) + '\', '
+
     retString = retString[:-2] + ')'
     return retString
 
@@ -73,7 +77,7 @@ def setAirportScraped(airportCode = '', status = 'SCRAPED'):
     try:
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
-        cur.execute("""Update public.allairports set Status = %s where  AirportCode = %s  """, (status,airportCode) )
+        cur.execute("""Update public.allairports set Status = %s, date_added = NOW() where AirportCode = %s  """, (status,airportCode) )
         if status == 'ERROR':
             cur.execute("""Delete from public.AllFlights where AirportCode = %s  """, (airportCode,) )
         conn.commit()
@@ -131,14 +135,14 @@ def insertFlightList(airportCode = '', ArrDepType = '', flightsfound = []):
     try:
         data = []
         for flight in flightsfound:
-            data.append((airportCode, ArrDepType, flight, str(datetime.datetime.now())))
+            data.append((airportCode, ArrDepType, flight))
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
         for row in data:
-            cur.execute("""INSERT INTO public.AllFlights (AirportCode, ArrDepType, FlightNumber, date_added) VALUES (%s,%s,%s,%s)""" , row)
+            cur.execute("""INSERT INTO public.AllFlights (AirportCode, ArrDepType, FlightNumber) VALUES (%s,%s,%s)""" , row)
         conn.commit()
     except:
-        setAirportScraped(airportCode, 'ERROR') 
+        setAirportScraped(airportCode, 'ERROR')
         conn.rollback()
 
     # Close communication with the database
@@ -213,7 +217,7 @@ def getNextFlight():
     conn.close()
 
 def insertScrapableFlightList(data = []):
-    '''Inserts scrapable flights into public.ScrapedFlights data 
+    '''Inserts scrapable flights into public.ScrapedFlights data
     should be a list of dict of all required fields and values'''
     try:
         conn = pg.connect(ConnectionString)
@@ -224,7 +228,7 @@ def insertScrapableFlightList(data = []):
             cur.execute("""INSERT INTO public.ScrapedFlights """ + dicttoInsert(row))
         conn.commit()
     except:
-        setFlightScraped(airportCode, 'ERROR') 
+        setFlightScraped(airportCode, 'ERROR')
         conn.rollback()
 
     # Close communication with the database
@@ -236,9 +240,9 @@ def setScrapableFlightScraped(id = -1, status = 'SCRAPED'):
     try:
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
-        cur.execute("""Update public.scrapedFlights set Status = %s where  id = %s  """, (status, id) )
+        cur.execute("""Update public.scrapedFlights set Status = %s, date_scraped = NOW() where id = %s  """, (status, id) )
         if status == 'ERROR':
-            cur.execute("""Delete from public.flightLogs where ScrapedFlights = %s  """, (id,) )
+            cur.execute("""Delete from public.flightLogs where ScrapedFlightsId = %s  """, (id,) )
         conn.commit()
     except:
         conn.rollback()
@@ -278,7 +282,7 @@ def getNextScrapableFlightDetails(id = -1):
         '''Locks a flight number to Scraping and returns airport code'''
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
-        cur.execute("select cast(date_part('year',FlightDate) as text) || LPAD(cast(date_part('month',FlightDate) as text),2,'0') || LPAD(cast (date_part('day',FlightDate) as text),2,'0') as formatedFlightDate, FlightNumber, ZuluTime, Destination as DepartureAirportCode,  Origin as ArrivalAirportCode from  public.scrapedFlights where id = " + str(id))
+        cur.execute("select cast(date_part('year',FlightDate) as text) || LPAD(cast(date_part('month',FlightDate) as text),2,'0') || LPAD(cast (date_part('day',FlightDate) as text),2,'0') as formatedFlightDate, FlightNumber, ZuluTime, Origin as DepartureAirportCode,  Destination as ArrivalAirportCode from public.scrapedFlights where id = " + str(id))
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -308,20 +312,20 @@ def removeAllLogs():
     conn.close()
 
 def insertFlightLogs(id = -1, data = []):
-    '''Inserts flight Logs into public.FlightLogs data 
+    '''Inserts flight Logs into public.FlightLogs data
     should be a list of dict of all required fields and values'''
     try:
         conn = pg.connect(ConnectionString)
         cur = conn.cursor()
         for row in data:
-            row['date_added'] = str(datetime.datetime.now())
-            row['ScrapedFlights'] = id
-            row['Simulated'] = 'False'
-            row['ScrapedBy'] = GlobalSettings.SCRAPER_ID
+            row['date_updated'] = str(datetime.datetime.now() + datetime.timedelta(hours=4))
+            row['ScrapedFlightsId'] = id
+			row['ScrapedBy'] = GlobalSettings.SCRAPER_ID
             cur.execute("""INSERT INTO public.FlightLogs """ + dicttoInsert(row))
+
         conn.commit()
     except Exception:
-        setScrapableFlightScraped(id, 'ERROR') 
+        setScrapableFlightScraped(id, 'ERROR')
         conn.rollback()
 
     # Close communication with the database

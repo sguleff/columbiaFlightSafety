@@ -4,6 +4,7 @@ import requests
 from datetime import datetime
 from datetime import timedelta
 import itertools
+import re
 
 
 
@@ -197,22 +198,8 @@ def getAvailableFlightHistory(FlightNumber):
     except:
         return  None
 
-def getFlightTrackLog2(flightInfoDict = {}):
-    '''scrape a flight track log from a flight given a dictionary containing:
-       departure date as '20160924'
-       Flight number as 'UA88'
-       ZuluTime as '0745Z'
-       DepartureAirportCode as 'ZBAA'
-       ArrivalAirportCode as 'KEWR'
-       '''
-    date = flightInfoDict['date']
-    FlightNumber = flightInfoDict['FlightNumber']
-    ZuluTime = flightInfoDict['ZuluTime']
-    DepartureAirportCode = flightInfoDict['DepartureAirportCode']
-    ArrivalAirportCode = flightInfoDict['ArrivalAirportCode']
-    return getFlightTrackLog(date = date, FlightNumber = FlightNumber, ZuluTime =  ZuluTime, DepartureAirportCode = DepartureAirportCode, ArrivalAirportCode = ArrivalAirportCode)
 
-def getFlightTrackLog(date = '', FlightNumber = '', ZuluTime = '', DepartureAirportCode = '', ArrivalAirportCode = ''):
+def getFlightTrackLog(date='', FlightNumber='', ZuluTime='', DepartureAirportCode='', ArrivalAirportCode=''):
     '''scrape a flight track log from a flight given:
        departure date as '20160924'
        Flight number as 'UA88'
@@ -225,31 +212,68 @@ def getFlightTrackLog(date = '', FlightNumber = '', ZuluTime = '', DepartureAirp
 
     r = urllib.urlopen(url).read()
     soup = BeautifulSoup(r, "lxml")
+
     table = soup.find("table", {"id":"tracklogTable"})
 
-    #sometimes we will not get flight details
-    if table == None:
+    # sometimes we will not get flight details
+    if table is None:
         return None
 
-    data = []
+
+    retlist = []
+
     rows = table.find_all('tr')
+
+    print "\nNow fetching data for: " + url
+
+    time_location = re.search(r'class="show-for-medium-up">Time \((\w*)\)</span>', str(rows[0])).group(1)
+
     for row in rows:
         cols = row.find_all('td')
-        timestamp = re.findall(r'<td align="left"><span class="show-for-medium-up-table">(.+)</span><span class="hide-for-medium-up">.+</span></td>', str(cols[0]))[0]
-        latitude = re.findall(r'<td align="right"><span class="show-for-medium-up-table">(-*\d+.\d+)</span><span class="hide-for-medium-up">-*\d+\.\d+</span></td>', str(cols[1]))[0]
-        longitude = re.findall(r'<td align="right"><span class="show-for-medium-up-table">(-*\d+.\d+)</span><span class="hide-for-medium-up">-*\d+\.\d+</span></td>', str(cols[2]))[0]
-        course = re.findall(r'\d+', str(cols[3]))[0]
-        direction = re.findall(r'<td align="left"><span class="show-for-medium-up-table">(\w+)</span>', str(cols[4]))[0]
-        KTS = re.findall(r'<td align="right">(\d+)</td>', str(cols[5]))[0]
-        MPH = re.findall(r'(\d+)', str(cols[6]))[0]
-        feet = re.findall(r'(\d+,*\d+)', str(cols[7]))[0]
-        rate = None
-        reporting_facility = re.findall(r'<td align="left" class="show-for-large-up-table"><img height="12" src="https://flightaware.com/images/live/center.gif" width="12"/> (\w+.+)</td>', str(cols[9]))
-        cols = [timestamp, latitude, longitude, course, direction, KTS, MPH, feet, rate, reporting_facility]
-        if len(cols) == 10:
-            data.append([ele for ele in cols]) # append all values (even None)
-    return data
 
+        if len(cols) > 7:
+            data = {}
+            timestamp = re.findall(r'<td align="left"><span class="show-for-medium-up-table">(.+)</span><span class="hide-for-medium-up">.+</span></td>', str(cols[0]))[0] + ' ' + time_location
+            latitude = re.findall(r'<td align="right"><span class="show-for-medium-up-table">(-*\d+.\d+)</span><span class="hide-for-medium-up">-*\d+\.\d+</span></td>', str(cols[1]))[0]
+            longitude = re.findall(r'<td align="right"><span class="show-for-medium-up-table">(-*\d+.\d+)</span><span class="hide-for-medium-up">-*\d+\.\d+</span></td>', str(cols[2]))[0]
+            course = re.findall(r'\d+', str(cols[3]))[0]
+            direction = re.findall(r'<td align="left"><span class="show-for-medium-up-table">(\w+)</span>', str(cols[4]))[0]
+            KTS = re.findall(r'<td align="right">(\d*)</td>', str(cols[5]))[0]
+            MPH = re.findall(r'">(\d*).*', str(cols[6]))[0]
+            feet = re.findall(r'table">(\d*,*\d*)', str(cols[7]))[0]
+
+
+
+
+
+
+            rate = ' '.join(list(re.findall(r'<td align="right" class="show-for-medium-up-table">(-*\d*,*\d*).*<img alt="(\w*)".+', str(cols[8]))[0])).replace(',', '')
+            my_string = str(cols[9])
+            reporting_facility = my_string[my_string.find('width="12"/> ') + len('width="12"/> '):my_string.find('</td>')]
+
+            data['fTimeStamp'] = date + ' ' + timestamp
+            data['latitude'] = float(latitude.replace(',',''))
+            data['longitude'] = float(longitude.replace(',',''))
+            data['course'] = int(course)
+            data['direction'] = direction
+            data['kts'] = int(KTS) if KTS != '' else None
+            data['mph'] = int(MPH.replace(',','')) if MPH != '' else None
+            data['elevation'] = int(feet.replace(',','')) if feet != '' else None
+            data['ascrate'] = 0 if (rate == ' Level') or (rate == ' Climbing') or (rate == ' Descending') else int(rate.split()[0])
+
+            if '</a>' in reporting_facility:
+                rep_fac_temp = ''.join(list(re.findall(r'<.*>(.*)</a> (.*)', reporting_facility)[0]))
+                rep_fac = rep_fac_temp.strip() if rep_fac_temp.endswith(' ') else rep_fac_temp
+                data['reportingfacility'] = rep_fac
+            else:
+                data['reportingfacility'] = reporting_facility
+
+            print data['fTimeStamp'], data['latitude'], data['longitude'], data['course'], data['direction'], data['kts'], data['mph'], data['elevation'], data['ascrate'], data['reportingfacility']
+
+            if len(data) == 10:
+                retlist.append(data)
+
+    return retlist
 def getAllArrivingFlights(airportCode):
     '''returns list of all Arriving flights from a specified airportCode'''
     try:

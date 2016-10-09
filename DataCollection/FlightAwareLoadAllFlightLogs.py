@@ -1,7 +1,6 @@
 import FlightAwarePostgreCon as PGDBCon
 import FlightAwareScrapeTest as PGScraper
 
-   
 ###### THIS WILL REMOVE ALL EXISTING DATA
 WIPE_EXISTING = False
 SIMULATE = False
@@ -13,7 +12,7 @@ def main():
         #PGDBCon.insertScrapableFlightList(data)
         id = PGDBCon.getNextScrapableFlight()
         flightDetails = PGDBCon.getNextScrapableFlightDetails(id)
-        availableScrapes = PGScraper.getFlightTrackLog(flightDetails[0],flightDetails[1],flightDetails[2],flightDetails[3],flightDetails[4] )
+        availableScrapes = PGScraper.getFlightTrackLog(*flightDetails)
         PGDBCon.insertFlightLogs(id, availableScrapes)
         return
 
@@ -25,35 +24,29 @@ def main():
             return
     except:
         print "ERROR WIPING DATA"
-    
+
 
     while True:
         try:
             #get the next available airport code
             id = PGDBCon.getNextScrapableFlight()
-            if id == None:
+            if id is None:
                 break
 
             flightDetails = PGDBCon.getNextScrapableFlightDetails(id)
 
-            #scrape all the arrivals into a list ['UAL88','UAL89']
-            availableScrapes = PGScraper.getFlightTrackLog(flightDetails[0],flightDetails[1],flightDetails[2],flightDetails[3],flightDetails[4] )
+            #scrape all available information about flight with ScrapedFlights.id == id
+            availableScrapes = PGScraper.getFlightTrackLog(*flightDetails)
 
-         
-            if len(availableScrapes) > 0:
-                PGDBCon.insertFlightLogs(availableScrapes)
+            if availableScrapes:
+                PGDBCon.insertFlightLogs(id, availableScrapes)
+                PGDBCon.setScrapableFlightScraped(id)
             else:
-                PGDBCon.setScrapableFlightScraped(id,'ERROR')
-                continue
-
-            PGDBCon.setScrapableFlightScraped(id)
+                PGDBCon.setScrapableFlightScraped(id, 'ERROR')
 
         except:
-            PGDBCon.setScrapableFlightScraped(id,'ERROR')
+            PGDBCon.setScrapableFlightScraped(id, 'ERROR')
 
 
 if __name__ == "__main__":
     main()
-
-
-

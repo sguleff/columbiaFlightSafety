@@ -21,7 +21,7 @@ def main():
             #get the next available airport code
             flight = PGDBCon.getNextFlight()
 
-            if flight == None:
+            if flight is None:
                 break
 
             print "getting Flight:" +  flight
@@ -32,10 +32,10 @@ def main():
             if len(availableScrapes) > 0:
                 print "Loading Flight:" +  flight + " Total Lines: " + str(len(availableScrapes))
                 PGDBCon.insertScrapableFlightList(availableScrapes)
+				PGDBCon.setFlightScraped(flight)
             else:
                 PGDBCon.setFlightScraped(flight,'ERROR')
-                continue
-            PGDBCon.setFlightScraped(flight)
+
         except:
             PGDBCon.setFlightScraped(flight,'ERROR')
 
