@@ -32,7 +32,7 @@ def main():
             if len(availableScrapes) > 0:
                 print "Loading Flight:" +  flight + " Total Lines: " + str(len(availableScrapes))
                 PGDBCon.insertScrapableFlightList(availableScrapes)
-				PGDBCon.setFlightScraped(flight)
+                PGDBCon.setFlightScraped(flight)
             else:
                 PGDBCon.setFlightScraped(flight,'ERROR')
 

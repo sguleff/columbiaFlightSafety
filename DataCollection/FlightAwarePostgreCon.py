@@ -320,7 +320,7 @@ def insertFlightLogs(id = -1, data = []):
         for row in data:
             row['date_updated'] = str(datetime.datetime.now() + datetime.timedelta(hours=4))
             row['ScrapedFlightsId'] = id
-			row['ScrapedBy'] = GlobalSettings.SCRAPER_ID
+            row['ScrapedBy'] = GlobalSettings.SCRAPER_ID
             cur.execute("""INSERT INTO public.FlightLogs """ + dicttoInsert(row))
 
         conn.commit()
