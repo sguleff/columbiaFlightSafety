@@ -1,5 +1,6 @@
 import FlightAwarePostgreCon as PGDBCon
 import FlightAwareScrapeTest as PGScraper
+
    
 ###### THIS WILL REMOVE ALL EXISTING DATA
 WIPE_EXISTING = False
